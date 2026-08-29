@@ -1,0 +1,7 @@
+== r1-distill-qwen-1.5b: family=qwen layers=28 hidden=1536 heads=12/2 tied=False vocab=151936
+G-A exact-match: 339 tensors, 0 mismatches PASS
+G-E throughput: 3072 tokens in 1.3s = 2439 tok/s
+G-B whole-model Q8_0: KL=5.806e-04 PASS
+G-C per-tensor Q8_0: worst=3.315e-05 PASS
+G-D topK vs exact: exact=1.315e-03 approx=1.251e-03 rel_err=4.882% FAIL
+wrote /Users/lakshya/Desktop/quantization/runs/m0-gates-r1-distill-qwen-1.5b.json

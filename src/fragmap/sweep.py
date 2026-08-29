@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 from .gguf_io import GGUFTensorSource
-from .kl import BaselineCache, score_variant
+from .kl import BaselineCache, score_variant, score_variant_exact
 from .splice import SplicedModel
 
 HARNESS_VERSION = "0.1"
@@ -59,6 +59,7 @@ def run_sweep(
     seq_domains: list[str] | None = None,
     batch_size: int = 8,
     log_every: int = 10,
+    baseline_model: SplicedModel | None = None,   # set -> exact full-vocab KL mode
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     done = load_done_keys(out_path)
@@ -72,7 +73,11 @@ def run_sweep(
         try:
             for hf_name, qtype in tensors:
                 model.splice(hf_name, sources[qtype].get_hf(hf_name))
-            metrics = score_variant(model, tokens, cache, batch_size=batch_size)
+            if baseline_model is not None:
+                metrics = score_variant_exact(baseline_model, model, tokens,
+                                              batch_size=max(2, batch_size // 2))
+            else:
+                metrics = score_variant(model, tokens, cache, batch_size=batch_size)
         finally:
             model.restore()
         row = {

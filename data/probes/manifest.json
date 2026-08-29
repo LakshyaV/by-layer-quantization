@@ -1,0 +1,17 @@
+{
+  "sha256": "3b7dbd23b38ba138dcde139e41bcb378271e1da5ed61b4c58c3c669303e1f207",
+  "n_docs": 3127,
+  "seed": 20260829,
+  "chars_per_domain": 400000,
+  "domains": [
+    "chat",
+    "code",
+    "math",
+    "micro_arith",
+    "micro_cloze",
+    "micro_induction",
+    "multilingual",
+    "qa",
+    "web"
+  ]
+}

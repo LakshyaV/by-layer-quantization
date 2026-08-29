@@ -37,6 +37,8 @@ def main():
     ap.add_argument("--types", default="Q3_K,Q4_K")
     ap.add_argument("--seqs-per-domain", type=int, default=12)
     ap.add_argument("--batch-size", type=int, default=8)
+    ap.add_argument("--exact", action="store_true",
+                    help="exact full-vocab KL (two models resident; 1.5-1.7B only)")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -52,22 +54,31 @@ def main():
         seqs_per_domain=args.seqs_per_domain)
     print(f"[run] probe: {tokens.shape} sha={tok_sha} domains={sorted(set(domains))}")
 
-    cache_path = ROOT / f"caches/topk/{name}-{tok_sha}.npz"
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
-    if cache_path.exists():
-        cache = BaselineCache.load(cache_path)
-        print(f"[run] baseline cache loaded: {cache_path.name}")
+    baseline_model = None
+    cache = None
+    if args.exact:
+        baseline_model = SplicedModel(str(ROOT / f"models/hf/{name}"))
+        print("[run] exact full-vocab KL mode (two models resident)")
     else:
-        t0 = time.time()
-        cache = build_baseline_cache(model, tokens, batch_size=args.batch_size)
-        cache.save(cache_path)
-        n_tok = tokens.shape[0] * tokens.shape[1]
-        print(f"[run] baseline cache built in {time.time()-t0:.0f}s "
-              f"({n_tok/(time.time()-t0):.0f} tok/s) -> {cache_path.name}")
+        cache_path = ROOT / f"caches/topk/{name}-{tok_sha}.npz"
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        if cache_path.exists():
+            cache = BaselineCache.load(cache_path)
+            print(f"[run] baseline cache loaded: {cache_path.name}")
+        else:
+            t0 = time.time()
+            cache = build_baseline_cache(model, tokens, batch_size=args.batch_size)
+            cache.save(cache_path)
+            n_tok = tokens.shape[0] * tokens.shape[1]
+            print(f"[run] baseline cache built in {time.time()-t0:.0f}s "
+                  f"({n_tok/(time.time()-t0):.0f} tok/s) -> {cache_path.name}")
 
     qtypes = args.types.split(",")
     sources = {q: get_source(name, q, family, n_head, n_kv) for q in qtypes}
     tensor_names = sweepable_hf_names(sources[qtypes[0]])
+    # tied models: GGUF may carry output.weight but MLX has no separate lm_head —
+    # splicing embed_tokens covers both roles (same array in the tied forward).
+    tensor_names = [t for t in tensor_names if t in model._params]
     print(f"[run] {len(tensor_names)} sweepable tensors, {L} layers")
 
     variants = []
@@ -87,7 +98,8 @@ def main():
     out = Path(args.out) if args.out else \
         ROOT / f"runs/sweepA-{args.mode}-{name}/results.jsonl"
     run_sweep(model, name, sources, interleave_variants(variants), tokens, cache,
-              tok_sha, out, seq_domains=domains, batch_size=args.batch_size)
+              tok_sha, out, seq_domains=domains, batch_size=args.batch_size,
+              baseline_model=baseline_model)
     print(f"[run] complete -> {out}")
 
 

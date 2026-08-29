@@ -119,6 +119,32 @@ def score_variant(model, tokens: np.ndarray, cache: BaselineCache,
     return VariantMetrics(kl_sum, kl_max, tokens.shape[1] - 1, flips, dnll, qtail)
 
 
+def score_variant_exact(model_p, model_q, tokens: np.ndarray,
+                        batch_size: int = 4) -> VariantMetrics:
+    """Exact full-vocab KL(P||Q) with baseline and variant models both resident.
+    Used for 1.5-1.7B models where 2x weights fit comfortably; retires the top-K
+    approximation for every headline claim. ~2x forward cost vs score_variant."""
+    N = tokens.shape[0]
+    kl_sum = np.zeros(N); kl_max = np.zeros(N); flips = np.zeros(N)
+    dnll = np.zeros(N); qtail = np.zeros(N)
+    for s in range(0, N, batch_size):
+        e = min(s + batch_size, N)
+        batch = mx.array(tokens[s:e])
+        lp = model_p.logits(batch)[:, :-1, :].astype(mx.float32)
+        lq = model_q.logits(batch)[:, :-1, :].astype(mx.float32)
+        lp = lp - mx.logsumexp(lp, axis=-1, keepdims=True)
+        lq = lq - mx.logsumexp(lq, axis=-1, keepdims=True)
+        kl = mx.sum(mx.exp(lp) * (lp - lq), axis=-1)
+        flip = mx.argmax(lp, axis=-1) != mx.argmax(lq, axis=-1)
+        nxt = batch[:, 1:][..., None]
+        d = (-mx.take_along_axis(lq, nxt, axis=-1) + mx.take_along_axis(lp, nxt, axis=-1))[..., 0]
+        mx.eval(kl, flip, d)
+        kl_np = np.maximum(np.array(kl, dtype=np.float64), 0.0)
+        kl_sum[s:e] = kl_np.sum(-1); kl_max[s:e] = kl_np.max(-1)
+        flips[s:e] = np.array(flip).sum(-1); dnll[s:e] = np.array(d).sum(-1)
+    return VariantMetrics(kl_sum, kl_max, tokens.shape[1] - 1, flips, dnll, qtail)
+
+
 def exact_kl_check(model_p, model_q, tokens: np.ndarray, cache: BaselineCache,
                    n_positions: int = 2000, batch_size: int = 2) -> dict:
     """Gate G-D: exact full-vocab KL vs the top-K+tail estimate on a position subset."""

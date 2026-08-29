@@ -22,8 +22,7 @@ SEED = 20260829
 # (repo, load_dataset kwargs, split, text_field) — field None means domain-specific formatting.
 NATURAL_SOURCES = {
     "web": [("HuggingFaceFW/fineweb-edu", {"name": "sample-10BT"}, "train", "text")],
-    "code": [("bigcode/the-stack-smol", {"data_dir": "data/python"}, "train", "content"),
-             ("HuggingFaceTB/smollm-corpus", {"name": "python-edu"}, "train", "text")],
+    "code": [("codeparrot/codeparrot-clean-valid", {}, "train", "content")],
     "math": [("AI-MO/NuminaMath-CoT", {}, "train", None),            # problem+solution
              ("meta-math/MetaMathQA", {}, "train", None)],            # query+response
     "qa": [("mandarjoshi/trivia_qa", {"name": "rc.nocontext"}, "train", None)],
