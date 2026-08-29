@@ -1,0 +1,41 @@
+{
+  "G-A": {
+    "checked": 310,
+    "mismatches": [],
+    "pass": true
+  },
+  "G-E": {
+    "tok_per_s": 2419.7
+  },
+  "G-B": {
+    "kl_mean": 0.0006365214492760452,
+    "pass": true
+  },
+  "G-C": {
+    "kl_by_tensor": {
+      "model.layers.0.self_attn.q_proj.weight": 1.053179011625402e-05,
+      "model.layers.14.self_attn.q_proj.weight": 7.989124267124662e-06,
+      "model.layers.0.self_attn.k_proj.weight": 7.796530410939572e-06,
+      "model.layers.14.self_attn.k_proj.weight": 6.929830666266235e-06,
+      "model.layers.0.self_attn.v_proj.weight": 1.2521590014883116e-05,
+      "model.layers.14.self_attn.v_proj.weight": 1.0032319993365045e-05,
+      "model.layers.0.self_attn.o_proj.weight": 1.1832780186452118e-05,
+      "model.layers.14.self_attn.o_proj.weight": 7.346311730204844e-06,
+      "model.layers.0.mlp.gate_proj.weight": 9.769402152183008e-06,
+      "model.layers.14.mlp.gate_proj.weight": 7.4239114445506356e-06,
+      "model.layers.0.mlp.up_proj.weight": 1.0125458642256025e-05,
+      "model.layers.14.mlp.up_proj.weight": 7.893587006073371e-06,
+      "model.layers.0.mlp.down_proj.weight": 1.1499696319886282e-05,
+      "model.layers.14.mlp.down_proj.weight": 8.006254211068153e-06,
+      "model.embed_tokens.weight": 4.92629467272291e-05
+    },
+    "worst": 4.92629467272291e-05,
+    "pass": true
+  },
+  "G-D": {
+    "exact_kl_mean": 0.0007569457970413508,
+    "approx_kl_mean": 0.0007514404315574496,
+    "rel_err": 0.007273130395095338,
+    "pass": true
+  }
+}

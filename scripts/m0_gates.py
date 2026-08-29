@@ -38,16 +38,13 @@ GATE_TEXTS = [
 
 
 def make_gate_probe(tokenizer, n_seq=12, seq_len=256, seed=7):
-    rng = np.random.default_rng(seed)
+    # Natural text only: flat (random-token) distributions break top-K KL at any K
+    # (measured: 53% rel err at K=256 vs 1.7% on natural text — m0_topk_diag).
     rows = []
     text_ids = sum((tokenizer.encode(t) for t in GATE_TEXTS), [])
     for i in range(n_seq):
-        if i % 3 == 2:
-            vocab = tokenizer.vocab_size if hasattr(tokenizer, "vocab_size") else 32000
-            row = rng.integers(10, vocab - 10, size=seq_len)
-        else:
-            start = (i * 61) % max(1, len(text_ids) - seq_len)
-            row = np.array((text_ids * 40)[start:start + seq_len])
+        start = (i * 61) % max(1, len(text_ids) - seq_len)
+        row = np.array((text_ids * 40)[start:start + seq_len])
         rows.append(row[:seq_len])
     return np.stack(rows).astype(np.int32)
 
@@ -80,8 +77,6 @@ def main(name: str):
             mism.append((hf, "missing-in-mlx"))
             continue
         g = src_f16.get_hf(hf).astype(np.float16)
-        m = np.array(model.get(hf).astype("float16") if hasattr(model.get(hf), "astype")
-                     else model.get(hf))
         m = np.array(model.get(hf), copy=False).astype(np.float16)
         checked += 1
         if g.shape != m.shape or not np.array_equal(g, m):

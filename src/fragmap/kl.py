@@ -14,7 +14,10 @@ from dataclasses import dataclass
 import numpy as np
 import mlx.core as mx
 
-TOPK = 256
+# K=1024: rel err vs exact KL measured at 0.73% on natural text (m0_topk_diag, 2026-08-29);
+# random/flat-distribution sequences are unsuitable for top-K KL at any K — probe domains
+# must keep baseline tail mass small (logged as q_tail_mean per variant).
+TOPK = 1024
 EPS = 1e-10
 
 
