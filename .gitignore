@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+models/
+vendor/
+caches/
+data/probes/*.parquet
+runs/*/log
+runs/*/*.kld
+*.gguf
+.DS_Store

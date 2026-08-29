@@ -1,0 +1,33 @@
+# Model registry. arch facts are verified against config.json by scripts/verify_configs.py (M0)
+# family: llama -> attn_q/attn_k rows are rope-permuted in GGUF and must be un-permuted on splice.
+models:
+  qwen3-1.7b:
+    hf_repo: Qwen/Qwen3-1.7B
+    family: qwen3
+    role: primary deep-dive (Sweep A+B+pairs, C1-C5, C8)
+  qwen2.5-1.5b:
+    hf_repo: Qwen/Qwen2.5-1.5B
+    family: qwen2
+    role: lineage base (C6/C7)
+  qwen2.5-math-1.5b:
+    hf_repo: Qwen/Qwen2.5-Math-1.5B
+    family: qwen2
+    role: lineage domain-SFT stage
+  r1-distill-qwen-1.5b:
+    hf_repo: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+    family: qwen2
+    role: lineage distillation endpoint (C7 validation target)
+  qwen2.5-coder-1.5b:
+    hf_repo: Qwen/Qwen2.5-Coder-1.5B
+    family: qwen2
+    role: lineage orthogonal branch (first cut if time)
+  qwen3-8b:
+    hf_repo: Qwen/Qwen3-8B
+    family: qwen3
+    role: scale replication (coarse)
+  llama-3.2-3b-instruct:
+    hf_repo: unsloth/Llama-3.2-3B-Instruct   # official meta-llama repo is license-gated
+    family: llama
+    role: second-family per-block sanity
+
+quant_types: [Q2_K, Q3_K, Q4_K, Q6_K, Q8_0]
